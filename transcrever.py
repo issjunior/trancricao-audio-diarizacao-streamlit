@@ -127,4 +127,5 @@ if audio_file is not None:
     # Exibir resultados como tabela sem índice
     st.write("### Resultados")
     tabela_falas = pd.DataFrame([{"Tempo": fala["tempo"], "Locutor": fala["locutor"], "Transcrição": fala["texto"]} for fala in falas])
-    st.dataframe(tabela_falas, use_container_width=True)  # Exibe a tabela sem índice
+    tabela_falas.index += 1  # Ajusta o índice para começar em 1
+    st.dataframe(tabela_falas, use_container_width=True)  # Exibe a tabela com índice ajustado
