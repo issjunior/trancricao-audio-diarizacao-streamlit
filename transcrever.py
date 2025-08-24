@@ -6,6 +6,9 @@ from pyannote.audio import Pipeline
 from docx import Document
 import pandas as pd  # Adicionado para manipulação de tabelas
 
+# Configuração da página
+st.set_page_config(layout="wide", page_title="SPAV - Transcrição", page_icon="🎙️")
+
 # Função para formatar o tempo
 def formatar_tempo(tempo_em_segundos):
     """Converte tempo em segundos para o formato mm:ss."""
@@ -83,7 +86,7 @@ def processar_audio(audio_path, huggingface_token):
 # -------------------------------
 # 1. Configuração inicial
 # -------------------------------
-st.title("Transcrição e Diarização de Áudio")
+st.title("SPAV - Transcrição")
 st.write("Carregue um arquivo de áudio para transcrição e identificação de locutores.")
 
 # Carregar variáveis de ambiente
