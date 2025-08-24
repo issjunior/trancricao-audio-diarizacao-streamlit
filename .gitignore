@@ -1,3 +1,24 @@
+# Arquivos de configuração e temporários
 .env
 temp_audio_file
+
+# Arquivos de saída
 *.docx
+
+# Formatos de áudio
+*.mp3
+*.wav
+*.m4a
+*.flac
+*.aac
+*.ogg
+*.wma
+
+# Formatos de vídeo
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm

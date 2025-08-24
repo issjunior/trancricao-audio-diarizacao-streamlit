@@ -20,7 +20,7 @@ def formatar_tempo(tempo_em_segundos):
 @st.cache_data
 def processar_audio(audio_path, huggingface_token):
     # Transcrição com Whisper
-    modelo = whisper.load_model("large")  # tiny, base, small, medium, large
+    modelo = whisper.load_model("base")  # tiny, base, small, medium, large
     resultado = modelo.transcribe(audio_path)
 
     # Diarização com Pyannote
