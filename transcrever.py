@@ -4,9 +4,6 @@ from dotenv import load_dotenv
 import whisper
 from pyannote.audio import Pipeline
 from docx import Document
-from docx.oxml import OxmlElement
-from streamlit.runtime.scriptrunner import RerunException
-from streamlit.runtime.state.session_state import SessionState
 
 # Função para formatar o tempo
 def formatar_tempo(tempo_em_segundos):
@@ -15,58 +12,21 @@ def formatar_tempo(tempo_em_segundos):
     segundos = int(tempo_em_segundos % 60)
     return f"{minutos:02}:{segundos:02}"
 
-# -------------------------------
-# 1. Configuração inicial
-# -------------------------------
-st.title("Transcrição e Diarização de Áudio")
-st.write("Carregue um arquivo de áudio para transcrição e identificação de locutores.")
-
-# Carregar variáveis de ambiente
-load_dotenv()
-HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-
-if not HUGGINGFACE_TOKEN:
-    st.error("❌ Token do HuggingFace não encontrado. Defina no arquivo `.env`.")
-    st.stop()
-
-# -------------------------------
-# 2. Upload do arquivo de áudio
-# -------------------------------
-audio_file = st.file_uploader("Carregue um arquivo de áudio", type=["mp3", "wav", "m4a"])
-
-if audio_file is not None:
-    with open("temp_audio_file", "wb") as f:
-        f.write(audio_file.read())
-    audio_path = "temp_audio_file"
-
-    # Barra de progresso e status
-    progresso = st.progress(0)
-    status = st.empty()
-
-    # -------------------------------
-    # 3. Transcrição com Whisper
-    # -------------------------------
-    status.text("Rodando Whisper...")
-    progresso.progress(25)
+# Função para processar o áudio
+@st.cache_data
+def processar_audio(audio_path, huggingface_token):
+    # Transcrição com Whisper
     modelo = whisper.load_model("tiny")  # tiny, base, small, medium, large
     resultado = modelo.transcribe(audio_path)
 
-    # -------------------------------
-    # 4. Diarização com Pyannote
-    # -------------------------------
-    status.text("Rodando Diarização...")
-    progresso.progress(50)
+    # Diarização com Pyannote
     pipeline = Pipeline.from_pretrained(
         "pyannote/speaker-diarization",
-        use_auth_token=HUGGINGFACE_TOKEN
+        use_auth_token=huggingface_token
     )
     diarization = pipeline(audio_path)
 
-    # -------------------------------
-    # 5. Mesclar transcrição + locutores numerados
-    # -------------------------------
-    status.text("Mesclando transcrição e locutores...")
-    progresso.progress(75)
+    # Mesclar transcrição e locutores
     falas = []
     mapa_locutores = {}
     contador_locutor = 1
@@ -98,20 +58,7 @@ if audio_file is not None:
             "texto": texto
         })
 
-    # -------------------------------
-    # 6. Exibir resultados no Streamlit
-    # -------------------------------
-    status.text("Exibindo resultados...")
-    progresso.progress(90)
-    st.write("### Resultados")
-    for fala in falas:
-        st.write(f"**{fala['tempo']}** | **{fala['locutor']}**: {fala['texto']}")
-
-    # -------------------------------
-    # 7. Exportar para Word
-    # -------------------------------
-    status.text("Salvando resultados no Word...")
-    progresso.progress(100)
+    # Gerar documento Word
     doc = Document()
     doc.add_heading("Tabela 1 - transcrição de áudio", level=1)
 
@@ -127,13 +74,56 @@ if audio_file is not None:
         row_cells[1].text = fala["locutor"]
         row_cells[2].text = fala["texto"]
 
-    doc.save("transcricao_diarizada.docx")
-    with open("transcricao_diarizada.docx", "rb") as file:
-        if st.download_button(
+    doc_path = "transcricao_diarizada.docx"
+    doc.save(doc_path)
+
+    return falas, doc_path
+
+# -------------------------------
+# 1. Configuração inicial
+# -------------------------------
+st.title("Transcrição e Diarização de Áudio")
+st.write("Carregue um arquivo de áudio para transcrição e identificação de locutores.")
+
+# Carregar variáveis de ambiente
+load_dotenv()
+HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+
+if not HUGGINGFACE_TOKEN:
+    st.error("❌ Token do HuggingFace não encontrado. Defina no arquivo `.env`.")
+    st.stop()
+
+# -------------------------------
+# 2. Upload do arquivo de áudio
+# -------------------------------
+audio_file = st.file_uploader("Carregue um arquivo de áudio", type=["mp3", "wav", "m4a"])
+
+if audio_file is not None:
+    with open("temp_audio_file", "wb") as f:
+        f.write(audio_file.read())
+    audio_path = "temp_audio_file"
+
+    # Processar o áudio
+    progresso = st.progress(0)
+    status = st.empty()
+    status.text("Processando áudio...")
+    progresso.progress(50)
+
+    falas, doc_path = processar_audio(audio_path, HUGGINGFACE_TOKEN)
+
+    progresso.progress(100)
+    status.text("Processamento concluído!")
+
+    # Exibir resultados
+    st.write("### Resultados")
+    for fala in falas:
+        st.write(f"**{fala['tempo']}** | **{fala['locutor']}**: {fala['texto']}")
+
+    # Botão para download do arquivo Word
+    with open(doc_path, "rb") as file:
+        st.download_button(
             label="📥 Baixar Arquivo Word",
             data=file,
             file_name="transcricao_diarizada.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        ):
-            st.success("Arquivo baixado com sucesso! Você pode carregar outro áudio agora.")
-            st.experimental_rerun()  # Reinicia a aplicação para permitir novo upload
+        )
