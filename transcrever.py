@@ -3,6 +3,7 @@ import streamlit as st
 from dotenv import load_dotenv
 import whisper
 from pyannote.audio import Pipeline
+from docx import Document
 import pandas as pd  # Adicionado para manipulação de tabelas
 
 # Configuração da página
@@ -61,7 +62,26 @@ def processar_audio(audio_path, huggingface_token):
             "texto": texto
         })
 
-    return falas
+    # Gerar documento Word
+    doc = Document()
+    doc.add_heading("Tabela 1 - transcrição de áudio", level=1)
+
+    tabela = doc.add_table(rows=1, cols=3)
+    hdr_cells = tabela.rows[0].cells
+    hdr_cells[0].text = 'Tempo'
+    hdr_cells[1].text = 'Locutor'
+    hdr_cells[2].text = 'Transcrição'
+
+    for fala in falas:
+        row_cells = tabela.add_row().cells
+        row_cells[0].text = fala["tempo"]
+        row_cells[1].text = fala["locutor"]
+        row_cells[2].text = fala["texto"]
+
+    doc_path = "transcricao_diarizada.docx"
+    doc.save(doc_path)
+
+    return falas, doc_path
 
 # -------------------------------
 # 1. Configuração inicial
@@ -93,10 +113,19 @@ if audio_file is not None:
     status.text("Processando áudio...")
     progresso.progress(50)
 
-    falas = processar_audio(audio_path, HUGGINGFACE_TOKEN)
+    falas, doc_path = processar_audio(audio_path, HUGGINGFACE_TOKEN)
 
     progresso.progress(100)
     status.text("Processamento concluído!")
+
+    # Botão para download do arquivo Word
+    with open(doc_path, "rb") as file:
+        st.download_button(
+            label="📥 Baixar Arquivo Word",
+            data=file,
+            file_name="transcricao_diarizada.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
     # Exibir resultados como tabela sem índice
     st.write("### Resultados")
