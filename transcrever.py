@@ -114,11 +114,6 @@ if audio_file is not None:
     progresso.progress(100)
     status.text("Processamento concluído!")
 
-    # Exibir resultados
-    st.write("### Resultados")
-    for fala in falas:
-        st.write(f"**{fala['tempo']}** | **{fala['locutor']}**: {fala['texto']}")
-
     # Botão para download do arquivo Word
     with open(doc_path, "rb") as file:
         st.download_button(
@@ -127,3 +122,8 @@ if audio_file is not None:
             file_name="transcricao_diarizada.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
+
+    # Exibir resultados
+    st.write("### Resultados")
+    for fala in falas:
+        st.write(f"**{fala['tempo']}** | **{fala['locutor']}**: {fala['texto']}")
