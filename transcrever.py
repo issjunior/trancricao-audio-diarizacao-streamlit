@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import whisper
 from pyannote.audio import Pipeline
 from docx import Document
+import pandas as pd  # Adicionado para manipulação de tabelas
 
 # Função para formatar o tempo
 def formatar_tempo(tempo_em_segundos):
@@ -16,7 +17,7 @@ def formatar_tempo(tempo_em_segundos):
 @st.cache_data
 def processar_audio(audio_path, huggingface_token):
     # Transcrição com Whisper
-    modelo = whisper.load_model("tiny")  # tiny, base, small, medium, large
+    modelo = whisper.load_model("large")  # tiny, base, small, medium, large
     resultado = modelo.transcribe(audio_path)
 
     # Diarização com Pyannote
@@ -123,7 +124,7 @@ if audio_file is not None:
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
-    # Exibir resultados
+    # Exibir resultados como tabela sem índice
     st.write("### Resultados")
-    for fala in falas:
-        st.write(f"**{fala['tempo']}** | **{fala['locutor']}**: {fala['texto']}")
+    tabela_falas = pd.DataFrame([{"Tempo": fala["tempo"], "Locutor": fala["locutor"], "Transcrição": fala["texto"]} for fala in falas])
+    st.dataframe(tabela_falas, use_container_width=True)  # Exibe a tabela sem índice
