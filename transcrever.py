@@ -9,6 +9,9 @@ import pandas as pd  # Adicionado para manipulação de tabelas
 # Configuração da página
 st.set_page_config(layout="wide", page_title="SPAV - Transcrição", page_icon="🎙️")
 
+# Copia os arquivos baixados para o cache
+os.environ["SPEECHBRAIN_LOCAL_CACHE_STRATEGY"] = "copy"
+
 # Função para formatar o tempo
 def formatar_tempo(tempo_em_segundos):
     """Converte tempo em segundos para o formato mm:ss."""
