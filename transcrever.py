@@ -89,7 +89,7 @@ def processar_audio(audio_path, huggingface_token):
 # -------------------------------
 # 1. Configuração inicial
 # -------------------------------
-st.title("SPAV - Transcrição")
+st.title("SPAV - Transcrição de Áudio")
 st.write("Carregue um arquivo de áudio para transcrição e identificação de locutores.")
 
 # Carregar variáveis de ambiente
