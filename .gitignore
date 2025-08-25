@@ -1,6 +1,7 @@
 # Arquivos de configuração e temporários
 .env
 temp_audio_file
+trancricao-audio-diarizacao-streamlit.code-workspace
 
 # Arquivos de saída
 *.docx
