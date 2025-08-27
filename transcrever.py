@@ -24,10 +24,10 @@ def formatar_tempo(tempo_em_segundos):
     return f"{minutos:02}:{segundos:02}"
 
 @st.cache_data
-def processar_audio(audio_path, huggingface_token, modelo_escolhido):
+def processar_audio(audio_path, huggingface_token, modelo_escolhido, idioma_escolhido):
     # Transcrição com Whisper
     modelo = whisper.load_model(modelo_escolhido)
-    resultado = modelo.transcribe(audio_path)
+    resultado = modelo.transcribe(audio_path, language=idioma_escolhido)
 
     # Diarização com Pyannote
     pipeline = Pipeline.from_pretrained(
@@ -103,20 +103,39 @@ if not HUGGINGFACE_TOKEN:
     st.error("❌ Token do HuggingFace não encontrado. Defina no arquivo `.env`.")
     st.stop()
 
-# Seleção do modelo Whisper
-opcoes_modelos = ["tiny", "base", "small", "medium", "large"]
-modelo_escolhido = st.selectbox("Escolha o modelo Whisper:", opcoes_modelos, index=0)
-st.info(f"📢 Modelo Whisper em execução: **{modelo_escolhido}**")
+# Seleção do modelo Whisper e idioma lado a lado
+col1, col2 = st.columns(2)
 
-# Explicações sobre trade-offs
+with col1:
+    opcoes_modelos = ["tiny", "base", "small", "medium", "large"]
+    modelo_escolhido = st.selectbox("Escolha o modelo Whisper:", opcoes_modelos, index=0)
+
+with col2:
+    opcoes_idiomas = {
+        "pt": "Português (Brasil)",
+        "en": "Inglês",
+        "es": "Espanhol",
+        "fr": "Francês",
+        "de": "Alemão",
+        "auto": "Detectar automaticamente"
+    }
+    idioma_escolhido_label = st.selectbox("Escolha o idioma do áudio:", list(opcoes_idiomas.values()), index=0)
+    idioma_escolhido = list(opcoes_idiomas.keys())[list(opcoes_idiomas.values()).index(idioma_escolhido_label)]
+
+# Explicações sobre trade-offs no contexto forense
 explicacoes_modelos = {
-    "tiny": "⚡ Muito rápido, baixo uso de memória, mas menor precisão.",
-    "base": "⚡ Rápido, boa opção inicial. Um pouco mais preciso que o tiny.",
-    "small": "⚖️ Equilíbrio entre velocidade e qualidade. Adequado para a maioria dos casos.",
-    "medium": "🧐 Mais lento, exige mais memória, mas fornece maior precisão.",
-    "large": "🔍 Muito lento, requer GPU forte, mas tem a **melhor qualidade de transcrição**."
+    "tiny": "⚡ Muito rápido e consome pouca memória. Útil apenas para pré-análises, mas com maior risco de erros de transcrição.",
+    "base": "⚡ Rápido e mais estável que o tiny. Indicado para triagem inicial, mas ainda não ideal para laudos técnicos.",
+    "small": "⚖️ Bom equilíbrio entre velocidade e precisão. Adequado para análises preliminares em contexto pericial.",
+    "medium": "🧐 Mais lento e exige mais recursos, mas alcança boa precisão. Recomendado quando a confiabilidade é importante.",
+    "large": "🔍 Mais demorado e exige mais do hardware, porém oferece a **maior qualidade e fidelidade na transcrição**."
 }
-st.markdown(f"💡 **Trade-off (ponto ótimo) do modelo selecionado:** {explicacoes_modelos[modelo_escolhido]}")
+
+st.markdown(f"""
+📢 **Modelo escolhido:** `{modelo_escolhido}`  
+🌍 **Idioma escolhido:** {idioma_escolhido_label}  
+💡 **Trade-off do modelo:** {explicacoes_modelos[modelo_escolhido]}
+""")
 
 # -------------------------------
 # 2. Upload do arquivo de áudio
@@ -134,10 +153,10 @@ if audio_file is not None:
     status.text("Processando áudio...")
     progresso.progress(50)
 
-    falas, doc_path = processar_audio(audio_path, HUGGINGFACE_TOKEN, modelo_escolhido)
+    falas, doc_path = processar_audio(audio_path, HUGGINGFACE_TOKEN, modelo_escolhido, idioma_escolhido)
 
     progresso.progress(100)
-    st.info(f"Processamento concluído!")
+    st.info("✅ Processamento concluído!")
 
     # Botão para download do arquivo Word
     with open(doc_path, "rb") as file:
