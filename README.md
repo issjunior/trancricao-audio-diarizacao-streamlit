@@ -36,8 +36,6 @@ git clone https://github.com/issjunior/trancricao-audio-diarizacao-streamlit.git
   pip install -r requirements.txt
   ```
 
----
-
 ## Criando TOKEN Hugging Face
 ### 🔑 Configuração do Hugging Face
 - Este projeto depende de modelos hospedados no Hugging Face.
@@ -58,7 +56,7 @@ HUGGINGFACE_TOKEN=seu_token_aqui
 ```bash
 python transcrever.py
 ```
-## 📌 Saída esperada
+### 📌 Saída esperada
 
 ```csharp
 [00:00 - 00:12] Locutor 1: Bom dia, tudo bem?
