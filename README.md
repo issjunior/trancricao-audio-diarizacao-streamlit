@@ -34,19 +34,18 @@ Este projeto realiza a **transcrição de áudio** e a **diarização de locutor
 - Após login, gerar token em: https://huggingface.co/settings/tokens
 - Clique em New Token, dê um nome (ex: spav-token) e copie o valor.
 - Escolha o tipo "Read".
-- Crie um arquivo .env na raiz do projeto com o conteúdo:
+- Crie um arquivo `.env` na raiz do projeto com o conteúdo:
 ```python
-HUGGINGFACE_TOKEN = "seu_token_aqui"
+HUGGINGFACE_TOKEN=seu_token_aqui
 ```
 ##### O pipeline pyannote/speaker-diarization precisa de acesso autenticado ao Hugging Face.
 
+---
 
 ### Execute o script:
 ```bash
 python transcrever.py
 ```
----
-
 ## Saída esperada
 
 ```csharp
