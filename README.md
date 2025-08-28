@@ -4,9 +4,9 @@ Este projeto realiza a **transcrição de áudio** e a **diarização de locutor
 
 ## Funcionalidades
 
-- **Transcrição de Áudio**: Utiliza o modelo Whisper para transcrever o áudio.
-- **Diarização de Locutores**: Identifica os diferentes locutores no áudio usando Pyannote.
-- **Exportação para Word**: Gera um arquivo `.docx` com uma tabela contendo:
+- **🎧 Transcrição de Áudio**: Utiliza o modelo Whisper para transcrever o áudio.
+- **🗣️ Diarização de Locutores**: Identifica os diferentes locutores no áudio usando Pyannote.
+- **📄 Exportação para Word**: Gera um arquivo `.docx` com uma tabela contendo:
   - Tempo de início e fim de cada fala no formato mm:ss.
   - Locutor identificado.
   - Texto transcrito.
@@ -27,8 +27,8 @@ source venv/bin/activate   # Linux/Mac
 venv\Scripts\activate      # Windows
   ```
 
-## 📥 Instalação
-### Clonar o repositório
+##  Instalação
+### 📥 Clonar o repositório
 git clone https://github.com/issjunior/trancricao-audio-diarizacao-streamlit.git
 
 ## Instalação de dependências
@@ -54,11 +54,11 @@ HUGGINGFACE_TOKEN=seu_token_aqui
 
 ---
 
-### Execute o script:
+## ▶️ Execute o script:
 ```bash
 python transcrever.py
 ```
-## Saída esperada
+## 📌 Saída esperada
 
 ```csharp
 [00:00 - 00:12] Locutor 1: Bom dia, tudo bem?
