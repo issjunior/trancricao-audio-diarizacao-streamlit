@@ -19,7 +19,19 @@ Este projeto realiza a **transcrição de áudio** e a **diarização de locutor
   python -m venv venv
   ```
 
-## Instalação de dependencias
+### Ativar o ambiente virtual
+  ```bash
+source venv/bin/activate   # Linux/Mac
+```
+```bash
+venv\Scripts\activate      # Windows
+  ```
+
+## 📥 Instalação
+### Clonar o repositório
+git clone https://github.com/issjunior/trancricao-audio-diarizacao-streamlit.git
+
+## Instalação de dependências
   ```bash
   pip install -r requirements.txt
   ```
@@ -38,7 +50,7 @@ Este projeto realiza a **transcrição de áudio** e a **diarização de locutor
 ```python
 HUGGINGFACE_TOKEN=seu_token_aqui
 ```
-##### O pipeline pyannote/speaker-diarization precisa de acesso autenticado ao Hugging Face.
+##### ⚠️ O pipeline pyannote/speaker-diarization precisa de acesso autenticado ao Hugging Face.
 
 ---
 
