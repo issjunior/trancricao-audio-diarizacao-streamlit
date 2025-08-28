@@ -2,49 +2,49 @@
 
 Este projeto realiza a **transcrição de áudio** e a **diarização de locutores** utilizando os modelos **Whisper** e **Pyannote**. O resultado é exportado em um arquivo Word (`.docx`) contendo uma tabela com as falas, os tempos e os locutores identificados.
 
----
-
 ## Funcionalidades
 
 - **Transcrição de Áudio**: Utiliza o modelo Whisper para transcrever o áudio.
 - **Diarização de Locutores**: Identifica os diferentes locutores no áudio usando Pyannote.
 - **Exportação para Word**: Gera um arquivo `.docx` com uma tabela contendo:
-  - Tempo de início e fim de cada fala.
+  - Tempo de início e fim de cada fala no formato mm:ss.
   - Locutor identificado.
   - Texto transcrito.
 
 ---
 
-## Requisitos
+## Configuração do Ambiente
+### ⚙️ Criar ambiente virtual
+  ```bash
+  python -m venv venv
+  ```
 
-- **Python 3.10+**
-- **Bibliotecas Python** (instale com `pip`):
+## Instalação de dependencias
   ```bash
   pip install -r requirements.txt
   ```
 
 ---
 
-## Como usar
-### 1. Coloque o áudio que deseja transcrever na pasta do projeto (ex: exemplo.mp3).
-### 2. Edite o arquivo Python com seu token Hugging Face:
+## Criando TOKEN Hugging Face
+### 🔑 Configuração do Hugging Face
+##### Este projeto depende de modelos hospedados no Hugging Face.
+##### Será necessário criar uma conta e gerar um token de acesso.
+##### Criar conta gratuita no Hugging Face: https://huggingface.co/join
+##### Após login, gerar token em: https://huggingface.co/settings/tokens
+##### Clique em New Token, dê um nome (ex: spav-token) e copie o valor.
+##### Escolha o tipo "Read".
+##### Crie um arquivo .env na raiz do projeto com o conteúdo:
 ```python
 HUGGINGFACE_TOKEN = "seu_token_aqui"
 ```
-#### O pipeline pyannote/speaker-diarization precisa de acesso autenticado ao Hugging Face.
+##### O pipeline pyannote/speaker-diarization precisa de acesso autenticado ao Hugging Face.
 
-### Configuração do TOKEN
-O projeto utiliza a biblioteca **python-dotenv** para carregar variáveis de ambiente. Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
-```python
-HUGGINGFACE_TOKEN=seu_token_aqui
-```
-#### Substitua "seu_token_aqui" pelo seu token de autenticação do Hugging Face. Esse token é necessário para acessar o pipeline de diarização de locutores.
 
-### 3.Execute o script:
+### Execute o script:
 ```bash
 python transcrever.py
 ```
-### 4. O resultado será exportado para transcricao_diarizada.docx.
 ---
 
 ## Saída esperada
