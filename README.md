@@ -54,14 +54,14 @@ HUGGINGFACE_TOKEN=seu_token_aqui
 
 ## ▶️ Execute o script:
 ```bash
-python transcrever.py
+streamlit run transcrever.py
 ```
 ### 📌 Saída esperada
 
 ```csharp
-[00:00 - 00:12] Locutor 1: Bom dia, tudo bem?
-[00:12 - 00:20] Locutor 2: Tudo sim, e você?
-[00:20 - 00:25] Locutor 1: Também, obrigado.
+[00:00 - 00:12] Locutor 1 Bom dia, tudo bem?
+[00:12 - 00:20] Locutor 2 Tudo sim, e você?
+[00:20 - 00:25] Locutor 1 Também, obrigado.
 ```
 
 
