@@ -1,0 +1,1 @@
+1. trocar biblioteca python-docx pela docxtpl
