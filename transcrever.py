@@ -138,9 +138,10 @@ if audio_file is not None:
     pasta_saida = os.path.join(os.getcwd(), "tabela_transcricao")
     os.makedirs(pasta_saida, exist_ok=True)
 
-    # Nome do arquivo Word baseado no nome do áudio
+    # Nome do arquivo Word baseado no nome do áudio e modelo Whisper
     nome_base = os.path.splitext(audio_file.name)[0]  # remove extensão
-    doc_path = os.path.join(pasta_saida, f"{nome_base}.docx")
+    doc_path = os.path.join(pasta_saida, f"{nome_base}-{modelo_escolhido}.docx")
+
 
     # Criar documento Word
     atualizar_progresso(progresso, status, "📄 Gerando documento Word... Etapa 5 de 5", 90)
