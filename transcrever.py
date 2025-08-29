@@ -73,7 +73,18 @@ st.markdown(f"""
 # -------------------------------
 audio_file = st.file_uploader("Carregue um arquivo de áudio", type=["mp3", "wav", "m4a"])
 
-# Botão para iniciar processamento
+# Se for enviado um novo arquivo diferente do último processado, limpar session_state
+if audio_file is not None:
+    if "audio_processado" not in st.session_state or st.session_state["audio_processado"] != audio_file.name:
+        st.session_state.pop("tabela_falas", None)
+        st.session_state.pop("doc_path", None)
+        st.session_state.pop("nome_base", None)
+        st.session_state.pop("modelo_escolhido", None)
+        st.session_state["audio_processado"] = audio_file.name
+
+# -------------------------------
+# 3. Botão para iniciar processamento
+# -------------------------------
 if audio_file is not None and st.button("▶️ Iniciar Transcrição"):
     # Salvar arquivo de áudio temporariamente
     audio_path = os.path.join(os.getcwd(), audio_file.name)
@@ -85,7 +96,7 @@ if audio_file is not None and st.button("▶️ Iniciar Transcrição"):
     status = st.empty()
 
     # -------------------------------
-    # 3. Processamento do áudio
+    # 4. Processamento do áudio
     # -------------------------------
     atualizar_progresso(progresso, status, "🎧 Carregando modelo Whisper... Etapa 1 de 5", 0)
     modelo = whisper.load_model(modelo_escolhido)
@@ -165,20 +176,29 @@ if audio_file is not None and st.button("▶️ Iniciar Transcrição"):
     doc.save(doc_path)
     atualizar_progresso(progresso, status, "✅ Processamento concluído!", 100)
 
-    # -------------------------------
-    # 4. Download e exibição
-    # -------------------------------
-    with open(doc_path, "rb") as file:
+    # Salvar no session_state
+    st.session_state["tabela_falas"] = pd.DataFrame(
+        [{"Tempo": f["tempo"], "Locutor": f["locutor"], "Transcrição": f["texto"]} for f in falas]
+    )
+    st.session_state["tabela_falas"].index += 1
+    st.session_state["doc_path"] = doc_path
+    st.session_state["nome_base"] = nome_base
+    st.session_state["modelo_escolhido"] = modelo_escolhido
+
+# -------------------------------
+# 5. Exibir botão de download e DataFrame (sempre)
+# -------------------------------
+if "tabela_falas" in st.session_state:
+
+    # Botão de download primeiro
+    with open(st.session_state["doc_path"], "rb") as file:
         st.download_button(
             label="📥 Baixar Arquivo Word",
             data=file,
-            file_name=f"{nome_base}-{modelo_escolhido}.docx",
+            file_name=f"{st.session_state['nome_base']}-{st.session_state['modelo_escolhido']}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
+    # Depois exibe o DataFrame
     st.write("### Transcrição")
-    tabela_falas = pd.DataFrame(
-        [{"Tempo": f["tempo"], "Locutor": f["locutor"], "Transcrição": f["texto"]} for f in falas]
-    )
-    tabela_falas.index += 1
-    st.dataframe(tabela_falas, use_container_width=True)
+    st.dataframe(st.session_state["tabela_falas"], use_container_width=True)
