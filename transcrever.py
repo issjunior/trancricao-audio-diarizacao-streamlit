@@ -74,9 +74,10 @@ st.markdown(f"""
 audio_file = st.file_uploader("Carregue um arquivo de áudio", type=["mp3", "wav", "m4a"])
 
 if audio_file is not None:
-    with open("temp_audio_file", "wb") as f:
+    # Salvar arquivo de áudio temporariamente
+    audio_path = os.path.join(os.getcwd(), audio_file.name)
+    with open(audio_path, "wb") as f:
         f.write(audio_file.read())
-    audio_path = "temp_audio_file"
 
     # Criar barra de progresso e status
     progresso = st.progress(0)
@@ -133,6 +134,14 @@ if audio_file is not None:
         progresso_value = 50 + int(40 * (i + 1) / total_segmentos)  # 50->90%
         progresso.progress(progresso_value)
 
+    # Criar pasta tabela_transcricao se não existir
+    pasta_saida = os.path.join(os.getcwd(), "tabela_transcricao")
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    # Nome do arquivo Word baseado no nome do áudio
+    nome_base = os.path.splitext(audio_file.name)[0]  # remove extensão
+    doc_path = os.path.join(pasta_saida, f"{nome_base}.docx")
+
     # Criar documento Word
     atualizar_progresso(progresso, status, "📄 Gerando documento Word... Etapa 5 de 5", 90)
     doc = Document()
@@ -151,9 +160,8 @@ if audio_file is not None:
         progresso_value = 90 + int(10 * (i + 1) / len(falas))  # 90->100%
         progresso.progress(progresso_value)
 
-    doc_path = "transcricao_diarizada.docx"
+    # Salvar documento Word
     doc.save(doc_path)
-
     atualizar_progresso(progresso, status, "✅ Processamento concluído!", 100)
 
     # -------------------------------
@@ -163,7 +171,7 @@ if audio_file is not None:
         st.download_button(
             label="📥 Baixar Arquivo Word",
             data=file,
-            file_name="transcricao_diarizada.docx",
+            file_name=f"{nome_base}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
