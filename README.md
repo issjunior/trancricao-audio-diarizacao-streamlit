@@ -36,12 +36,11 @@ sudo apt install ffmpeg -y
 ```
 
 ### 🔹 Instalação no Windows
--Acesse o site oficial do FFmpeg: https://ffmpeg.org/download.html
--Baixe a versão mais recente para Windows.
--Extraia os arquivos em uma pasta, por exemplo: C:\ffmpeg\.
-  -Adicione o caminho C:\ffmpeg\bin à variável de ambiente PATH.
-  -Painel de Controle → Sistema → Configurações avançadas do sistema → Variáveis de Ambiente.
-  -Para confirmar a instalação, abra o Prompt de Comando e digite:
+- Acesse o site oficial do FFmpeg: https://ffmpeg.org/download.html
+- Baixe a versão mais recente para Windows.
+- Extraia os arquivos em uma pasta, por exemplo: C:\ffmpeg\.
+  - Adicione o caminho C:\ffmpeg\bin à variável de ambiente PATH.
+  - Painel de Controle → Sistema → Configurações avançadas do sistema → Variáveis de Ambiente.
 
 ---
 
