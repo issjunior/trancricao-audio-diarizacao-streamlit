@@ -73,9 +73,13 @@ st.markdown(f"""
 # -------------------------------
 audio_file = st.file_uploader("Carregue um arquivo de áudio", type=["mp3", "wav", "m4a"])
 
-# Se for enviado um novo arquivo diferente do último processado, limpar session_state
+# Se for enviado um novo arquivo diferente do último processado, limpar session_state e excluir Word antigo
 if audio_file is not None:
     if "audio_processado" not in st.session_state or st.session_state["audio_processado"] != audio_file.name:
+        # Excluir Word antigo
+        if "doc_path" in st.session_state and os.path.exists(st.session_state["doc_path"]):
+            os.remove(st.session_state["doc_path"])
+        # Limpar session_state
         st.session_state.pop("tabela_falas", None)
         st.session_state.pop("doc_path", None)
         st.session_state.pop("nome_base", None)
@@ -184,6 +188,12 @@ if audio_file is not None and st.button("▶️ Iniciar Transcrição"):
     st.session_state["doc_path"] = doc_path
     st.session_state["nome_base"] = nome_base
     st.session_state["modelo_escolhido"] = modelo_escolhido
+
+    # -------------------------------
+    # Excluir o arquivo de áudio temporário
+    # -------------------------------
+    if os.path.exists(audio_path):
+        os.remove(audio_path)
 
 # -------------------------------
 # 5. Exibir botão de download e DataFrame (sempre)
