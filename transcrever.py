@@ -73,7 +73,8 @@ st.markdown(f"""
 # -------------------------------
 audio_file = st.file_uploader("Carregue um arquivo de áudio", type=["mp3", "wav", "m4a"])
 
-if audio_file is not None:
+# Botão para iniciar processamento
+if audio_file is not None and st.button("▶️ Iniciar Transcrição"):
     # Salvar arquivo de áudio temporariamente
     audio_path = os.path.join(os.getcwd(), audio_file.name)
     with open(audio_path, "wb") as f:
@@ -142,7 +143,6 @@ if audio_file is not None:
     nome_base = os.path.splitext(audio_file.name)[0]  # remove extensão
     doc_path = os.path.join(pasta_saida, f"{nome_base}-{modelo_escolhido}.docx")
 
-
     # Criar documento Word
     atualizar_progresso(progresso, status, "📄 Gerando documento Word... Etapa 5 de 5", 90)
     doc = Document()
@@ -172,7 +172,7 @@ if audio_file is not None:
         st.download_button(
             label="📥 Baixar Arquivo Word",
             data=file,
-            file_name=f"{nome_base}.docx",
+            file_name=f"{nome_base}-{modelo_escolhido}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
