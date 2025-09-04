@@ -60,8 +60,7 @@ git clone https://github.com/issjunior/trancricao-audio-diarizacao-streamlit.git
 - pip install --cache-dir "$HOME/pip_cache" -r requirements.txt --progress-bar=on --verbose → instala os pacotes:
   - `cache-dir` mantém cache no disco, evitando baixar repetidamente arquivos grandes.
   - `progress-bar=on` mostra a barra de progresso do download.
-
---verbose fornece logs detalhados de instalação.
+  - `verbose` fornece logs detalhados de instalação.
 
 ## Criando TOKEN Hugging Face
 ### 🔑 Configuração do Hugging Face
