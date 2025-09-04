@@ -52,7 +52,7 @@ git clone https://github.com/issjunior/trancricao-audio-diarizacao-streamlit.git
 
 ## Instalação de dependências
   ```bash
-  pip install -r requirements.txt
+  pip install --no-cache-dir -r requirements.txt
   ```
 
 ## Criando TOKEN Hugging Face
