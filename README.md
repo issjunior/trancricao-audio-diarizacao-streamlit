@@ -55,9 +55,9 @@ git clone https://github.com/issjunior/trancricao-audio-diarizacao-streamlit.git
   TMPDIR=$(mktemp -d -p $HOME pip_tmp_XXXX) && trap 'rm -rf "$TMPDIR"' EXIT && pip install --cache-dir "$HOME/pip_cache" -r requirements.txt --progress-bar=on --verbose
   ```
 ### ✅ O que acontece ao executar a linha de comando acima:
-- TMPDIR=$(mktemp -d -p $HOME pip_tmp_XXXX) → cria um diretório temporário no disco ($HOME, não tmpfs).
-- trap 'rm -rf "$TMPDIR"' EXIT → garante que o diretório temporário será removido mesmo que o pip falhe.
-- pip install --cache-dir "$HOME/pip_cache" -r requirements.txt --progress-bar=on --verbose → instala os pacotes:
+- `TMPDIR=$(mktemp -d -p $HOME pip_tmp_XXXX)` → cria um diretório temporário no disco ($HOME, não tmpfs).
+- `trap 'rm -rf "$TMPDIR"' EXIT` → garante que o diretório temporário será removido mesmo que o pip falhe.
+- `pip install --cache-dir "$HOME/pip_cache" -r requirements.txt --progress-bar=on --verbose` → instala os pacotes:
   - `cache-dir` mantém cache no disco, evitando baixar repetidamente arquivos grandes.
   - `progress-bar=on` mostra a barra de progresso do download.
   - `verbose` fornece logs detalhados de instalação.
