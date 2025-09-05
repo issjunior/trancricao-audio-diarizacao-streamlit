@@ -1,6 +1,4 @@
 import os
-import gc
-import time
 import traceback
 import streamlit as st
 from dotenv import load_dotenv
@@ -10,7 +8,6 @@ from docx import Document
 import pandas as pd
 from io import BytesIO
 import queue
-import psutil
 
 # -------------------------------
 # 0. Configuração da página
@@ -39,9 +36,6 @@ def atualizar_progresso(progresso_bar, status_text, etapa, valor, detalhes=""):
         status_msg += f" - {detalhes}"
     status_text.text(status_msg)
     progresso_bar.progress(int(min(valor, 100)))
-
-def limpar_memoria():
-    gc.collect()
 
 def processar_audio_chunk(modelo, audio_path, language, progress_queue):
     try:
@@ -73,7 +67,7 @@ def processar_diarizacao(audio_path, token, progress_queue):
 # -------------------------------
 st.sidebar.title("Setor de Áudio e Vídeo - SPAV")
 
-# 1️⃣ Modelo Whisper
+# Modelo Whisper
 st.sidebar.subheader("🎯 Modelo Whisper")
 opcoes_modelos = {
     "tiny": {"nome": "Tiny", "descricao": "⚡ Ultra rápido, baixa precisão", "tamanho": "39MB"},
@@ -82,22 +76,19 @@ opcoes_modelos = {
     "medium": {"nome": "Medium", "descricao": "🧐 Mais lento, boa precisão", "tamanho": "769MB"},
     "large": {"nome": "Large", "descricao": "🔍 Muito lento, alta precisão", "tamanho": "1.5GB"}
 }
-
 modelo_escolhido = st.sidebar.selectbox(
     "Modelo:",
     options=list(opcoes_modelos.keys()),
     index=2,
     format_func=lambda x: opcoes_modelos[x]["nome"]
 )
-
 if modelo_escolhido == "medium":
     st.sidebar.warning(f"⚠️ '{modelo_escolhido}' será lento na máquina atual.")
 elif modelo_escolhido == "large":
     st.sidebar.error(f"❌ '{modelo_escolhido}' será MUITO lento na máquina atual.")
-
 st.sidebar.info(f"Tamanho: {opcoes_modelos[modelo_escolhido]['tamanho']}")
 
-# 2️⃣ Idioma
+# Idioma
 st.sidebar.subheader("🗣️ Idioma do áudio")
 opcoes_idiomas = {
     "pt": "Português (Brasil)",
@@ -107,15 +98,12 @@ opcoes_idiomas = {
     "de": "Alemão",
     "auto": "🌐 Detectar automaticamente"
 }
-
 idioma_escolhido_label = st.sidebar.selectbox(
-    "Idioma:",
-    list(opcoes_idiomas.values()),
-    index=0
+    "Idioma:", list(opcoes_idiomas.values()), index=0
 )
 idioma_escolhido = list(opcoes_idiomas.keys())[list(opcoes_idiomas.values()).index(idioma_escolhido_label)]
 
-# 3️⃣ Avançado
+# Avançado
 st.sidebar.subheader("🔧 Avançado")
 chunk_processing = st.sidebar.checkbox("📦 Processamento em chunks", value=True)
 auto_cleanup = st.sidebar.checkbox("🧹 Limpeza automática de memória", value=True)
@@ -132,13 +120,10 @@ if not HUGGINGFACE_TOKEN:
     st.error("❌ Token do HuggingFace não encontrado. Defina no arquivo `.env`")
     st.stop()
 
-# -------------------------------
 # Upload do áudio
-# -------------------------------
 st.header("📁 Upload do Arquivo")
 audio_file = st.file_uploader(
-    "Selecione um arquivo de áudio",
-    type=["mp3", "wav", "m4a", "flac"],
+    "Selecione um arquivo de áudio", type=["mp3", "wav", "m4a", "flac"],
     help="Formatos suportados: MP3, WAV, M4A, FLAC"
 )
 
@@ -155,17 +140,12 @@ if audio_file:
         for key in ["tabela_falas", "nome_base", "modelo_escolhido", "doc_word", "csv_data"]:
             st.session_state.pop(key, None)
         st.session_state["audio_processado"] = audio_file.name
-        if auto_cleanup:
-            limpar_memoria()
 
-# -------------------------------
 # Processamento do áudio
-# -------------------------------
 if audio_file:
     col1, col2 = st.columns([3,1])
     with col1:
         if st.button("▶️ Iniciar Transcrição", type="primary"):
-            start_time = time.time()
             audio_path = os.path.join(os.getcwd(), f"temp_{audio_file.name}")
             try:
                 with open(audio_path, "wb") as f:
@@ -179,7 +159,6 @@ if audio_file:
                 
                 atualizar_progresso(progresso, status, "🎧 Carregando modelo Whisper", 5)
                 modelo = whisper.load_model(modelo_escolhido)
-                if auto_cleanup: limpar_memoria()
                 
                 atualizar_progresso(progresso, status, "🎧 Transcrevendo áudio", 15)
                 progress_queue = queue.Queue()
@@ -194,7 +173,6 @@ if audio_file:
                 
                 atualizar_progresso(progresso, status, "✅ Transcrição concluída", 50)
                 del modelo
-                if auto_cleanup: limpar_memoria()
                 
                 atualizar_progresso(progresso, status, "🗣️ Inicializando diarização", 55)
                 processar_diarizacao(audio_path, HUGGINGFACE_TOKEN, progress_queue)
@@ -266,12 +244,8 @@ if audio_file:
             finally:
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
-                if auto_cleanup:
-                    limpar_memoria()
 
-# -------------------------------
 # Exibir resultados
-# -------------------------------
 if "tabela_falas" in st.session_state:
     st.header("📊 Resultados")
     col_btn1, col_btn2, col_btn3 = st.columns(3)
