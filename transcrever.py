@@ -271,15 +271,11 @@ if audio_file is not None:
                 # -------------------------------
                 # Criar Word em memória
                 doc = Document()
-                doc.add_heading("Tabela 1 - Transcrição de Áudio", level=1)
-                info_para = doc.add_paragraph()
-                info_para.add_run("Informações do Processamento:\n").bold = True
-                info_para.add_run(f"• Arquivo: {audio_file.name}\n")
-                info_para.add_run(f"• Modelo: {modelo_escolhido}\n")
-                info_para.add_run(f"• Idioma: {idioma_escolhido_label}\n")
-                info_para.add_run(f"• Total de segmentos: {len(falas)}\n")
-                info_para.add_run(f"• Locutores identificados: {len(mapa_locutores)}\n")
-                info_para.add_run(f"• Processado em: {time.strftime('%d/%m/%Y %H:%M:%S')}\n\n")
+                doc.add_heading(f'Tabela 1 - Transcrição do Áudio "{audio_file.name}".', level=1)
+                #info_para.add_run(f"• Arquivo: {audio_file.name}\n")
+                #info_para.add_run(f"• Modelo: {modelo_escolhido}\n")
+                #info_para.add_run(f"• Idioma: {idioma_escolhido_label}\n")
+                #info_para.add_run(f"• Total de segmentos: {len(falas)}\n")
                 tabela = doc.add_table(rows=1, cols=3)
                 tabela.style = 'Table Grid'
                 hdr_cells = tabela.rows[0].cells
@@ -292,6 +288,12 @@ if audio_file is not None:
                     row_cells[1].text = fala["locutor"]
                     row_cells[2].text = fala["texto"]
                 
+                info_para = doc.add_paragraph()
+                info_para.add_run("\n")
+                info_para.add_run("Informações da Transcrição:\n").bold = True
+                info_para.add_run(f"• Locutores identificados: {len(mapa_locutores)}\n")
+                info_para.add_run(f"• Processado em: {time.strftime('%d/%m/%Y %H:%M:%S')}\n")
+
                 doc_stream = BytesIO()
                 doc.save(doc_stream)
                 doc_stream.seek(0)
