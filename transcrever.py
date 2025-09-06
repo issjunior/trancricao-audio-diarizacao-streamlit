@@ -8,6 +8,8 @@ from docx import Document
 import pandas as pd
 from io import BytesIO
 import queue
+import multiprocessing
+import psutil
 
 # -------------------------------
 # 0. Configuração da página
@@ -18,9 +20,20 @@ os.environ["SPEECHBRAIN_LOCAL_CACHE_STRATEGY"] = "copy"
 # -------------------------------
 # Configurações de otimização
 # -------------------------------
-os.environ["OMP_NUM_THREADS"] = "2"
-os.environ["MKL_NUM_THREADS"] = "2"
-os.environ["NUMEXPR_NUM_THREADS"] = "2"
+num_cores = multiprocessing.cpu_count()                     # Detecta número total de núcleos da CPU
+mem_total_gb = psutil.virtual_memory().total / (1024 ** 3)  # Detecta memória total disponível em GB
+disk = psutil.disk_usage("/")                               # Detecta espaço em disco
+total_gb = disk.total / (1024 ** 3)
+used_gb = disk.used / (1024 ** 3)                          
+free_gb = disk.free / (1024 ** 3)
+
+# Usa sempre todos os núcleos disponíveis
+threads = num_cores
+
+# Aplica as configurações de threads
+os.environ["OMP_NUM_THREADS"] = str(threads)
+os.environ["MKL_NUM_THREADS"] = str(threads)
+os.environ["NUMEXPR_NUM_THREADS"] = str(threads)
 
 # -------------------------------
 # Funções auxiliares
@@ -65,7 +78,6 @@ def processar_diarizacao(audio_path, token, progress_queue):
 # -------------------------------
 # SIDEBAR
 # -------------------------------
-st.sidebar.title("Setor de Áudio e Vídeo - SPAV")
 
 # Modelo Whisper
 st.sidebar.subheader("🎯 Modelo Whisper")
@@ -82,11 +94,8 @@ modelo_escolhido = st.sidebar.selectbox(
     index=2,
     format_func=lambda x: opcoes_modelos[x]["nome"]
 )
-if modelo_escolhido == "medium":
-    st.sidebar.warning(f"⚠️ '{modelo_escolhido}' será lento na máquina atual.")
-elif modelo_escolhido == "large":
-    st.sidebar.error(f"❌ '{modelo_escolhido}' será MUITO lento na máquina atual.")
-st.sidebar.info(f"Tamanho: {opcoes_modelos[modelo_escolhido]['tamanho']}")
+
+st.sidebar.text(f"Tamanho do modelo escolhido: {opcoes_modelos[modelo_escolhido]['tamanho']}")
 
 # Idioma
 st.sidebar.subheader("🗣️ Idioma do áudio")
@@ -104,14 +113,21 @@ idioma_escolhido_label = st.sidebar.selectbox(
 idioma_escolhido = list(opcoes_idiomas.keys())[list(opcoes_idiomas.values()).index(idioma_escolhido_label)]
 
 # Avançado
-st.sidebar.subheader("🔧 Avançado")
+st.sidebar.subheader("🔧 Opções Avançado")
 chunk_processing = st.sidebar.checkbox("📦 Processamento em chunks", value=True)
 auto_cleanup = st.sidebar.checkbox("🧹 Limpeza automática de memória", value=True)
+
+st.sidebar.markdown(
+    f"⚙️ **Detecção automática de hardware**\n\n"
+    f"- Threads de processamento: {threads}\n"
+    f"- Memória RAM: {mem_total_gb:.1f} GB\n"
+    f"- Espaço em disco livre: {free_gb:.1f} GB de {total_gb:.1f} GB"
+)
 
 # -------------------------------
 # Página principal
 # -------------------------------
-st.title("🎙️ SPAV - Transcrição de Áudio")
+st.header("🎙️ SPAV - Transcrição de Áudio", divider=True)
 st.write("Transcrição e reconhecimento de voz.")
 
 load_dotenv()
