@@ -1,15 +1,16 @@
-import os
-import traceback
-import streamlit as st
-from dotenv import load_dotenv
-import whisper
-from pyannote.audio import Pipeline
-from docx import Document
-import pandas as pd
-from io import BytesIO
-import queue
-import multiprocessing
-import psutil
+import os                           # Manipulação de arquivos, diretórios e variáveis de ambiente do sistema operacional
+import traceback                    # Captura e exibição detalhada de erros (stack trace)
+import streamlit as st              # Framework para criar aplicações web interativas em Python
+from dotenv import load_dotenv      # Carrega variáveis de ambiente a partir de um arquivo .env
+import whisper                      # Reconhecimento de fala (transcrição automática de áudio)
+from pyannote.audio import Pipeline # Pipeline para tarefas de diarização (separar falas por locutor)
+from docx import Document           # Criação e manipulação de documentos Word (.docx)
+import pandas as pd                 # Manipulação e análise de dados em tabelas (DataFrames)
+from io import BytesIO              # Manipulação de arquivos em memória como streams binários (ex: salvar Word sem gravar em disco)
+import queue                        # Estrutura de filas para comunicação entre processos/threads
+import multiprocessing              # Manipulação de processos paralelos e detecção de núcleos de CPU
+import psutil                       # Monitoramento de recursos do sistema (CPU, memória, disco)
+
 
 # -------------------------------
 # 0. Configuração da página
