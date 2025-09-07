@@ -86,8 +86,7 @@ def processar_diarizacao(audio_path, token, progress_queue):
 # -------------------------------
 # SIDEBAR
 # -------------------------------
-# Modelo Whisper
-st.sidebar.subheader("🎙️ Modelo Whisper")
+st.sidebar.title("Parâmetros")
 opcoes_modelos = {
     "tiny": {"nome": "Tiny", "descricao": "⚡ Ultra rápido, baixa precisão", "tamanho": "39MB"},
     "base": {"nome": "Base", "descricao": "⚡ Rápido, precisão moderada", "tamanho": "74MB"},
