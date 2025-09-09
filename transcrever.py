@@ -333,7 +333,6 @@ if audio_file:
 
 # 📊 Exibir resultados
 if "tabela_falas" in st.session_state:
-    st.header("🎤 Resultados")
     col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
     with col_btn1:
         st.download_button(
