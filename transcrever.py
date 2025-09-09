@@ -348,7 +348,7 @@ if "tabela_falas" in st.session_state:
             mime="text/plain"
         )
     with col_btn4:
-        if st.button("🧹 Limpar Resultados"):
+        if st.button("🧹 Limpar Resultados", type="primary"):
             for key in ["tabela_falas", "doc_word", "csv_data", "srt_data", "audio_processado"]:
                 st.session_state.pop(key, None)
             st.rerun()
