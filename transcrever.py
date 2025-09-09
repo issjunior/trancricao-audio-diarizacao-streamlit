@@ -215,18 +215,27 @@ if audio_file:
 
 # 🎬 Processamento do áudio
 if audio_file:
-    col1, col2 = st.columns([3,1])
-    with col1:
-        if st.button("🚀 Iniciar Transcrição", type="secondary"):
-            audio_path = os.path.join(os.getcwd(), f"temp_{audio_file.name}")
-            try:
-                with open(audio_path, "wb") as f:
-                    f.write(audio_file.read())
-                st.header("🔄 Progresso da Transcrição")
+    # Remova as colunas anteriores
+    if st.button("🚀 Iniciar Transcrição", type="secondary"):
+        audio_path = os.path.join(os.getcwd(), f"temp_{audio_file.name}")
+        try:
+            with open(audio_path, "wb") as f:
+                f.write(audio_file.read())
+            
+            # Use st.empty() com uma largura total
+            st.header("🔄 Progresso da Transcrição")
+            
+            # Crie um contêiner de largura total
+            progress_container = st.container()
+            with progress_container:
+                # Use st.empty() de forma semelhante ao seu código original
                 progresso_placeholder = st.empty()
                 status_placeholder = st.empty()
-                progresso = progresso_placeholder.progress(0)
+                
+                # Configurar progresso para ocupar toda a largura
+                progresso = progresso_placeholder.progress(0, text="")
                 status = status_placeholder
+                
                 atualizar_progresso(progresso, status, "🤖 Carregando modelo Whisper", 5)
                 modelo = whisper.load_model(modelo_escolhido)
                 atualizar_progresso(progresso, status, "🎙️ Transcrevendo áudio", 15)
@@ -313,14 +322,14 @@ if audio_file:
                 st.session_state["srt_data"] = srt_content
                 
                 atualizar_progresso(progresso, status, "✅ Processamento concluído!", 100)
-                st.success("🎉 Transcrição concluída!")
-            except Exception as e:
-                st.error(f"⚠️ Erro durante o processamento:")
-                st.code(str(e))
-                st.expander("🐞 Detalhes técnicos").code(traceback.format_exc())
-            finally:
-                if os.path.exists(audio_path):
-                    os.remove(audio_path)
+
+        except Exception as e:
+            st.error(f"⚠️ Erro durante o processamento:")
+            st.code(str(e))
+            st.expander("🐞 Detalhes técnicos").code(traceback.format_exc())
+        finally:
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
 
 # 📊 Exibir resultados
 if "tabela_falas" in st.session_state:
