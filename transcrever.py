@@ -1,28 +1,25 @@
-import os # Manipulação de arquivos, diretórios e variáveis de ambiente do sistema operacional
-import traceback # Captura e exibição detalhada de erros (stack trace)
-import streamlit as st # Framework para criar aplicações web interativas em Python
-from dotenv import load_dotenv # Carrega variáveis de ambiente a partir de um arquivo .env
-import whisper # Reconhecimento de fala (transcrição automática de áudio)
-from pyannote.audio import Pipeline # Pipeline para tarefas de diarização (separar falas por locutor)
-from docx import Document # Criação e manipulação de documentos Word (.docx)
-import pandas as pd # Manipulação e análise de dados em tabelas (DataFrames)
-from io import BytesIO # Manipulação de arquivos em memória como streams binários (ex: salvar Word sem gravar em disco)
-import queue # Estrutura de filas para comunicação entre processos/threads
-import multiprocessing # Manipulação de processos paralelos e detecção de núcleos de CPU
-import psutil # Monitoramento de recursos do sistema (CPU, memória, disco)
+import os
+import traceback
+import streamlit as st
+from dotenv import load_dotenv
+import whisper
+from pyannote.audio import Pipeline
+from docx import Document
+import pandas as pd
+from io import BytesIO
+import queue
+import multiprocessing
+import psutil
+from datetime import timedelta
 
-# -------------------------------
-# 0. Configuração da página
-# -------------------------------
-st.set_page_config(layout="wide", page_title="SPAV - Transcrição", page_icon="👁️")
+# 🖥️ Configuração da página
+st.set_page_config(layout="wide", page_title="SPAV - Transcrição", page_icon="🎙️")
 os.environ["SPEECHBRAIN_LOCAL_CACHE_STRATEGY"] = "copy"
 
-# -------------------------------
-# Configurações de otimização
-# -------------------------------
-num_cores = multiprocessing.cpu_count() # Detecta número total de núcleos da CPU
-mem_total_gb = psutil.virtual_memory().total / (1024 ** 3) # Detecta memória total disponível em GB
-disk = psutil.disk_usage("/") # Detecta espaço em disco
+# 💻 Configurações de otimização
+num_cores = multiprocessing.cpu_count()
+mem_total_gb = psutil.virtual_memory().total / (1024 ** 3)
+disk = psutil.disk_usage("/")
 total_gb = disk.total / (1024 ** 3)
 used_gb = disk.used / (1024 ** 3)
 free_gb = disk.free / (1024 ** 3)
@@ -35,7 +32,7 @@ os.environ["OMP_NUM_THREADS"] = str(threads)
 os.environ["MKL_NUM_THREADS"] = str(threads)
 os.environ["NUMEXPR_NUM_THREADS"] = str(threads)
 
-# Inicialização das configurações de sessão
+# 🔧 Inicialização das configurações de sessão
 if 'habilitar_diarizacao' not in st.session_state:
     st.session_state['habilitar_diarizacao'] = True
 if 'chunk_processing' not in st.session_state:
@@ -43,9 +40,31 @@ if 'chunk_processing' not in st.session_state:
 if 'auto_cleanup' not in st.session_state:
     st.session_state['auto_cleanup'] = True
 
-# -------------------------------
-# Funções auxiliares
-# -------------------------------
+# 🕰️ Função para criar SRT
+def criar_srt(falas):
+    srt_content = []
+    for i, fala in enumerate(falas, 1):
+        minutos_inicio, segundos_inicio = map(int, fala["tempo"].split(" - ")[0].split(":"))
+        minutos_fim, segundos_fim = map(int, fala["tempo"].split(" - ")[1].split(":"))
+        
+        tempo_inicio = timedelta(minutes=minutos_inicio, seconds=segundos_inicio)
+        tempo_fim = timedelta(minutes=minutos_fim, seconds=segundos_fim)
+        
+        srt_timestamp_inicio = str(tempo_inicio).replace(".", ",")[:12]
+        srt_timestamp_fim = str(tempo_fim).replace(".", ",")[:12]
+        
+        srt_texto = f"{fala['locutor']}: {fala['texto'].strip('\"')}"
+        
+        srt_entry = (
+            f"{i}\n"
+            f"{srt_timestamp_inicio} --> {srt_timestamp_fim}\n"
+            f"{srt_texto}\n\n"
+        )
+        srt_content.append(srt_entry)
+    
+    return "".join(srt_content)
+
+# 🛠️ Funções auxiliares
 def formatar_tempo(tempo_em_segundos):
     minutos = int(tempo_em_segundos // 60)
     segundos = int(tempo_em_segundos % 60)
@@ -83,16 +102,14 @@ def processar_diarizacao(audio_path, token, progress_queue):
     except Exception as e:
         progress_queue.put(("erro", str(e)))
 
-# -------------------------------
-# SIDEBAR
-# -------------------------------
-st.sidebar.title("Parâmetros")
+# 🎛️ Configuração da barra lateral
+st.sidebar.title("🔧 Parâmetros")
 opcoes_modelos = {
-    "tiny": {"nome": "Tiny", "descricao": "⚡ Ultra rápido, baixa precisão", "tamanho": "39MB"},
-    "base": {"nome": "Base", "descricao": "⚡ Rápido, precisão moderada", "tamanho": "74MB"},
-    "small": {"nome": "Small", "descricao": "🔊 Balanceado", "tamanho": "244MB"},
-    "medium": {"nome": "Medium", "descricao": "🚀 Mais lento, boa precisão", "tamanho": "769MB"},
-    "large": {"nome": "Large", "descricao": "🌟 Muito lento, alta precisão", "tamanho": "1.5GB"}
+    "tiny": {"nome": "Tiny", "descricao": "🚀 Ultra rápido, baixa precisão", "tamanho": "39MB"},
+    "base": {"nome": "Base", "descricao": "🏃 Rápido, precisão moderada", "tamanho": "74MB"},
+    "small": {"nome": "Small", "descricao": "🚉 Balanceado", "tamanho": "244MB"},
+    "medium": {"nome": "Medium", "descricao": "🚄 Mais lento, boa precisão", "tamanho": "769MB"},
+    "large": {"nome": "Large", "descricao": "🚀 Muito lento, alta precisão", "tamanho": "1.5GB"}
 }
 modelo_escolhido = st.sidebar.selectbox(
     "Modelo:",
@@ -103,15 +120,15 @@ modelo_escolhido = st.sidebar.selectbox(
 )
 st.sidebar.text(f"Tamanho do modelo escolhido: {opcoes_modelos[modelo_escolhido]['tamanho']}")
 
-# Idioma
-st.sidebar.subheader("🌐 Idioma do áudio")
+# 🌐 Idioma
+st.sidebar.subheader("🌍 Idioma do áudio")
 opcoes_idiomas = {
     "pt": "Português (Brasil)",
     "en": "Inglês",
     "es": "Espanhol",
     "fr": "Francês",
     "de": "Alemão",
-    "auto": "🌍 Detectar automaticamente"
+    "auto": "🌐 Detectar automaticamente"
 }
 idioma_escolhido_label = st.sidebar.selectbox(
     "Idioma:", list(opcoes_idiomas.values()), index=0,
@@ -119,15 +136,15 @@ idioma_escolhido_label = st.sidebar.selectbox(
 )
 idioma_escolhido = list(opcoes_idiomas.keys())[list(opcoes_idiomas.values()).index(idioma_escolhido_label)]
 
-# Avançado
-st.sidebar.subheader("⚙️ Opções Avançado")
+# ⚙️ Opções Avançadas
+st.sidebar.subheader("⚙️ Opções Avançadas")
 if "audio_processado" not in st.session_state:
     st.session_state['habilitar_diarizacao'] = st.sidebar.checkbox(
-        "🗣️ Reconhecimento de locutor (Diarização)", 
+        "👥 Reconhecimento de locutor (Diarização)", 
         value=st.session_state['habilitar_diarizacao']
     )
     st.session_state['chunk_processing'] = st.sidebar.checkbox(
-        "🔄 Processamento em chunks", 
+        "🧩 Processamento em chunks", 
         value=st.session_state['chunk_processing']
     )
     st.session_state['auto_cleanup'] = st.sidebar.checkbox(
@@ -135,11 +152,11 @@ if "audio_processado" not in st.session_state:
         value=st.session_state['auto_cleanup']
     )
 else:
-    st.sidebar.write("🗣️ Reconhecimento de locutor: " + 
+    st.sidebar.write("👥 Reconhecimento de locutor: " + 
                      (f"<span style='color:green'>Habilitado</span>" if st.session_state['habilitar_diarizacao'] else 
                       f"<span style='color:red'>Desabilitado</span>"), 
                      unsafe_allow_html=True)
-    st.sidebar.write("🔄 Processamento em chunks: " + 
+    st.sidebar.write("🧩 Processamento em chunks: " + 
                      (f"<span style='color:green'>Habilitado</span>" if st.session_state['chunk_processing'] else 
                       f"<span style='color:red'>Desabilitado</span>"), 
                      unsafe_allow_html=True)
@@ -148,43 +165,40 @@ else:
                       f"<span style='color:red'>Desabilitada</span>"), 
                      unsafe_allow_html=True)
 
-
 st.sidebar.markdown(
-    f"⚙️ **Detecção automática de hardware**\n\n"
+    f"💻 **Detecção automática de hardware**\n\n"
     f"- Threads de processamento: {threads}\n"
     f"- Memória RAM: {mem_total_gb:.1f} GB\n"
     f"- Espaço em disco livre: {free_gb:.1f} GB de {total_gb:.1f} GB"
 )
 
-# -------------------------------
-# Página principal
-# -------------------------------
-st.header("👁️ SPAV - Transcrição de Áudio", divider=True)
+# 🎙️ Página principal
+st.header("🎙️ SPAV - Transcrição de Áudio", divider=True)
 st.write("Transcrição e reconhecimento de voz.")
 load_dotenv()
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 if st.session_state['habilitar_diarizacao'] and not HUGGINGFACE_TOKEN:
-    st.error("❌ Token do HuggingFace não encontrado. Defina no arquivo `.env` ou desabilite a diarização")
+    st.error("⚠️ Token do HuggingFace não encontrado. Defina no arquivo `.env` ou desabilite a diarização")
     st.stop()
 
-# Upload do áudio
-st.header("📂 Upload do Arquivo")
+# 📤 Upload do áudio
+st.header("📤 Upload do Arquivo")
 audio_file = st.file_uploader(
     "Selecione um arquivo de áudio", type=["mp3", "wav", "m4a", "flac"],
     help="Formatos suportados: MP3, WAV, M4A, FLAC"
 )
 
-# Botão de reiniciar sempre visível
+# 🔄 Botão de reiniciar sempre visível
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.write("")  # Espaço reservado
-with col2:
-    st.write("")  # Espaço reservado
-with col3:
     if st.button("🔄 Reiniciar Aplicação", type="primary"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+with col2:
+    st.write("")  # Espaço reservado
+with col3:
+    st.write("")  # Espaço reservado
 
 if audio_file:
     try:
@@ -193,17 +207,17 @@ if audio_file:
         if file_size_mb > 100:
             st.warning("⚠️ Arquivo é grande. O processamento será lento.")
     except Exception:
-        st.info("📁 Arquivo carregado com sucesso")
+        st.info("✅ Arquivo carregado com sucesso")
     if "audio_processado" not in st.session_state or st.session_state["audio_processado"] != audio_file.name:
-        for key in ["tabela_falas", "nome_base", "modelo_escolhido", "doc_word", "csv_data"]:
+        for key in ["tabela_falas", "nome_base", "modelo_escolhido", "doc_word", "csv_data", "srt_data"]:
             st.session_state.pop(key, None)
         st.session_state["audio_processado"] = audio_file.name
 
-# Processamento do áudio
+# 🎬 Processamento do áudio
 if audio_file:
     col1, col2 = st.columns([3,1])
     with col1:
-        if st.button("▶️ Iniciar Transcrição", type="primary"):
+        if st.button("🚀 Iniciar Transcrição", type="secondary"):
             audio_path = os.path.join(os.getcwd(), f"temp_{audio_file.name}")
             try:
                 with open(audio_path, "wb") as f:
@@ -213,7 +227,7 @@ if audio_file:
                 status_placeholder = st.empty()
                 progresso = progresso_placeholder.progress(0)
                 status = status_placeholder
-                atualizar_progresso(progresso, status, "🎙️ Carregando modelo Whisper", 5)
+                atualizar_progresso(progresso, status, "🤖 Carregando modelo Whisper", 5)
                 modelo = whisper.load_model(modelo_escolhido)
                 atualizar_progresso(progresso, status, "🎙️ Transcrevendo áudio", 15)
                 progress_queue = queue.Queue()
@@ -227,19 +241,19 @@ if audio_file:
                 atualizar_progresso(progresso, status, "✅ Transcrição concluída", 50)
                 del modelo
                 
-                # Diarização condicional
+                # 🔊 Diarização condicional
                 diarization = None
                 if st.session_state['habilitar_diarizacao']:
-                    atualizar_progresso(progresso, status, "🗣️ Inicializando diarização", 55)
+                    atualizar_progresso(progresso, status, "👥 Inicializando diarização", 55)
                     processar_diarizacao(audio_path, HUGGINGFACE_TOKEN, progress_queue)
                     result_type, diarization = progress_queue.get_nowait()
                     if result_type == "erro":
                         raise Exception(resultado)
                     atualizar_progresso(progresso, status, "✅ Diarização concluída", 75)
                 else:
-                    atualizar_progresso(progresso, status, "🚫 Diarização desabilitada", 75)
+                    atualizar_progresso(progresso, status, "⏩ Diarização desabilitada", 75)
                 
-                # Processar segmentos
+                # 📝 Processar segmentos
                 falas = []
                 mapa_locutores = {}
                 contador_locutor = 1
@@ -270,9 +284,9 @@ if audio_file:
                     })
                     if i % max(1, total_segmentos // 10) == 0:
                         progress_val = 80 + int(10*(i+1)/total_segmentos)
-                        atualizar_progresso(progresso, status, "🔄 Processando segmentos", progress_val)
+                        atualizar_progresso(progresso, status, "🧩 Processando segmentos", progress_val)
                 
-                # Gerar documentos
+                # 📄 Gerar documentos
                 doc = Document()
                 doc.add_heading(f'Tabela 1 - Transcrição do Áudio "{audio_file.name}".', level=1)
                 tabela = doc.add_table(rows=1, cols=3)
@@ -293,20 +307,25 @@ if audio_file:
                 st.session_state["tabela_falas"] = pd.DataFrame([{"Tempo": f["tempo"], "Locutor": f["locutor"], "Transcrição": f["texto"]} for f in falas])
                 st.session_state["tabela_falas"].index += 1
                 st.session_state["csv_data"] = st.session_state["tabela_falas"].to_csv(index=False)
+                
+                # 🎬 Gerar arquivo SRT
+                srt_content = criar_srt(falas)
+                st.session_state["srt_data"] = srt_content
+                
                 atualizar_progresso(progresso, status, "✅ Processamento concluído!", 100)
                 st.success("🎉 Transcrição concluída!")
             except Exception as e:
-                st.error(f"❌ Erro durante o processamento:")
+                st.error(f"⚠️ Erro durante o processamento:")
                 st.code(str(e))
                 st.expander("🐞 Detalhes técnicos").code(traceback.format_exc())
             finally:
                 if os.path.exists(audio_path):
                     os.remove(audio_path)
 
-# Exibir resultados
+# 📊 Exibir resultados
 if "tabela_falas" in st.session_state:
-    st.header("📄 Resultados")
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
+    st.header("🎤 Resultados")
+    col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
     with col_btn1:
         st.download_button(
             label="📄 Baixar Word",
@@ -322,14 +341,21 @@ if "tabela_falas" in st.session_state:
             mime="text/csv"
         )
     with col_btn3:
+        st.download_button(
+            label="📝 Baixar SRT",
+            data=st.session_state["srt_data"],
+            file_name=f"{st.session_state['audio_processado'].split('.')[0]}-{modelo_escolhido}.srt",
+            mime="text/plain"
+        )
+    with col_btn4:
         if st.button("🧹 Limpar Resultados"):
-            for key in ["tabela_falas", "doc_word", "csv_data", "audio_processado"]:
+            for key in ["tabela_falas", "doc_word", "csv_data", "srt_data", "audio_processado"]:
                 st.session_state.pop(key, None)
             st.rerun()
     
-    st.subheader("📋 Transcrição Completa")
+    st.subheader("🎼 Transcrição Completa")
     st.dataframe(st.session_state["tabela_falas"], use_container_width=True, height=400)
-    with st.expander("📊 Estatísticas Detalhadas"):
+    with st.expander("📈 Estatísticas Detalhadas"):
         df = st.session_state["tabela_falas"]
         col_stat1, col_stat2 = st.columns(2)
         with col_stat1:
@@ -340,3 +366,7 @@ if "tabela_falas" in st.session_state:
             st.write("**Distribuição de Falas por Locutor:**")
             for locutor, count in distribuicao.items():
                 st.write(f"• {locutor}: {count} falas")
+
+# Executa a aplicação
+if __name__ == "__main__":
+    st.write("")  # Necessário para inicialização do Streamlit
