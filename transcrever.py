@@ -103,21 +103,25 @@ def processar_diarizacao(audio_path, token, progress_queue):
         progress_queue.put(("erro", str(e)))
 
 # 🎛️ Configuração da barra lateral
-st.sidebar.title("🔧 Parâmetros")
 opcoes_modelos = {
-    "tiny": {"nome": "Tiny", "descricao": "🚀 Ultra rápido, baixa precisão", "tamanho": "39MB"},
-    "base": {"nome": "Base", "descricao": "🏃 Rápido, precisão moderada", "tamanho": "74MB"},
-    "small": {"nome": "Small", "descricao": "🚉 Balanceado", "tamanho": "244MB"},
-    "medium": {"nome": "Medium", "descricao": "🚄 Mais lento, boa precisão", "tamanho": "769MB"},
-    "large": {"nome": "Large", "descricao": "🚀 Muito lento, alta precisão", "tamanho": "1.5GB"}
+    "tiny": {"nome": "Tiny", "descricao": "Ultra rápido, baixa precisão", "tamanho": "39MB"},
+    "base": {"nome": "Base", "descricao": "Rápido, precisão moderada", "tamanho": "74MB"},
+    "small": {"nome": "Small", "descricao": "Balanceado", "tamanho": "244MB"},
+    "medium": {"nome": "Medium", "descricao": "Mais lento, boa precisão", "tamanho": "769MB"},
+    "large": {"nome": "Large", "descricao": "Muito lento, alta precisão", "tamanho": "1.5GB"},
+    "large-v2": {"nome": "Large-v2", "descricao": "Versão 2 do modelo Large, melhor precisão", "tamanho": "1.9GB"},
+    "large-v3": {"nome": "Large-v3", "descricao": "Versão 3 do modelo Large, precisão avançada", "tamanho": "2.1GB"},
+    "turbo": {"nome": "Turbo", "descricao": "Modelo otimizado de alta performance", "tamanho": "2.3GB"}
 }
+
 modelo_escolhido = st.sidebar.selectbox(
     "Modelo:",
     options=list(opcoes_modelos.keys()),
-    index=2,
+    index=2,  # Corresponde ao "small"
     format_func=lambda x: opcoes_modelos[x]["nome"],
     disabled="audio_processado" in st.session_state
 )
+
 st.sidebar.text(f"Tamanho do modelo escolhido: {opcoes_modelos[modelo_escolhido]['tamanho']}")
 
 # 🌐 Idioma
