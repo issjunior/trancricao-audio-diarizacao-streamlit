@@ -3,7 +3,7 @@
 Este projeto realiza a **transcrição de áudio** e a **diarização de locutores** utilizando os modelos **Whisper** e **Pyannote**. O resultado é exportado em um arquivo Word (`.docx`) contendo uma tabela com as falas, os tempos e os locutores identificados.
 
 ### Parametros whisper
-[Fonte: OpenAI Whisper](https://www.otaviomiranda.com.br/2025/python-sussu-cli-openai-whisper/)
+[Fonte: OpenAI Whisper (https://www.otaviomiranda.com.br/)](https://www.otaviomiranda.com.br/2025/python-sussu-cli-openai-whisper/)
 
 ## Funcionalidades
 
