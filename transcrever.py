@@ -196,6 +196,10 @@ audio_file = st.file_uploader(
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("🔄 Reiniciar Aplicação", type="primary"):
+        if "audio_processado" in st.session_state:
+            audio_path = os.path.join(os.getcwd(), f"temp_{st.session_state['audio_processado']}")
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
@@ -361,6 +365,10 @@ if "tabela_falas" in st.session_state:
         )
     with col_btn4:
         if st.button("🧹 Limpar Resultados", type="primary"):
+            if "audio_processado" in st.session_state:
+                audio_path = os.path.join(os.getcwd(), f"temp_{st.session_state['audio_processado']}")
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
             for key in ["tabela_falas", "doc_word", "csv_data", "srt_data", "audio_processado"]:
                 st.session_state.pop(key, None)
             st.rerun()
